@@ -1,0 +1,16 @@
+.section-title {
+  font-family: 'Roboto', sans-serif;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 400;
+  letter-spacing: 0;
+  margin: 0;
+  padding: 16px 0;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+@media (prefers-color-scheme: dark) {
+  .section-title {
+    color: rgba(255, 255, 255, 0.87);
+  }
+}

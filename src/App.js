@@ -1,23 +1,21 @@
-import './App.css';
-import Carousel from './components/Carousel';
-import Header from './components/Header';
-import './css/base.css'
-import './css/embla.css'
-import './css/sandbox.css'
-
-
-const OPTIONS = { dragFree: true, loop: true }
-const SLIDE_COUNT = 5
-const SLIDES = Array.from(Array(SLIDE_COUNT).keys())
-
+import './css/App.css';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Home from './pages/Home';
+import Register from './pages/Register';
+import Login from './pages/Login';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
-    <>
-    <Header />
-    <Carousel slides={SLIDES} options={OPTIONS} />
- 
-  </>
+    <Router>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<Navigate to="/register" replace />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/home" element={<Home />} />
+      </Routes>
+    </Router>
   );
 }
 
