@@ -15,7 +15,6 @@ const ImageContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   transition: "transform 0.5s ease",
   gap: "20px",
-  padding: "0 40px",
   cursor: "grab",
   "&:active": {
     cursor: "grabbing"
@@ -199,13 +198,15 @@ const ImageCarousel = ({ visibleImages = 3 }) => {
       role="region"
       aria-label="Image Carousel"
     >
-      <NavigationButton
-        onClick={handlePrev}
-        aria-label="Previous image"
-        sx={{ left: 0 }}
-      >
-        <FaChevronLeft />
-      </NavigationButton>
+      {currentIndex > 0 && (
+        <NavigationButton
+          onClick={handlePrev}
+          aria-label="Previous image"
+          sx={{ left: 0 }}
+        >
+          <FaChevronLeft />
+        </NavigationButton>
+      )}
 
       <ImageContainer
         ref={containerRef}

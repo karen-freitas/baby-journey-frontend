@@ -16,15 +16,17 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import babyFeet from '../assets/icons8-caminho-de-pegadas-de-bebê-96.png';
 import { Add as AddIcon, Logout as LogoutIcon } from '@mui/icons-material';
 const HeaderContainer = styled(Box)(({ theme }) => ({
-  width: '100%',
+  width: '100vw', // Garante que o header ocupe toda a largura da viewport
   height: '120px',
-  background: '#ACFFDE',
+  background: '#D4B7FF',
   display: 'flex',
   alignItems: 'flex-start',
   position: 'relative',
   overflow: 'hidden',
-  margin: 0,
-  padding: 0,
+  margin: 0, // Remove qualquer margem
+  padding: 0, // Remove qualquer padding
+  top: 0, // Garante que o header fique no topo
+  left: 0, // Garante alinhamento à esquerda
   '&::before': {
     content: '""',
     position: 'absolute',
@@ -33,8 +35,8 @@ const HeaderContainer = styled(Box)(({ theme }) => ({
     right: 0,
     height: '30px',
     background: 'white',
-    clipPath: 'polygon(100% 100%, 0% 100%, 0% 60%, 4% 65%, 8% 70%, 12% 74%, 16% 77%, 20% 79%, 24% 80%, 28% 80%, 32% 79%, 36% 77%, 40% 74%, 44% 70%, 48% 65%, 52% 60%, 56% 55%, 60% 51%, 64% 47%, 68% 44%, 72% 41%, 76% 38%, 80% 35%, 84% 32%, 88% 30%, 92% 28%, 96% 27%, 100% 25%)'
-  }
+    clipPath: 'polygon(100% 100%, 0% 100%, 0% 60%, 4% 65%, 8% 70%, 12% 74%, 16% 77%, 20% 79%, 24% 80%, 28% 80%, 32% 79%, 36% 77%, 40% 74%, 44% 70%, 48% 65%, 52% 60%, 56% 55%, 60% 51%, 64% 47%, 68% 44%, 72% 41%, 76% 38%, 80% 35%, 84% 32%, 88% 30%, 92% 28%, 96% 27%, 100% 25%)',
+  },
 }));
 
 const HeaderContent = styled(Box)(({ theme }) => ({
@@ -101,7 +103,7 @@ const UserAvatar = styled(Avatar)(({ theme }) => ({
   color: '#2C2C2C',
 }));
 
-const Header = () => {
+const Header = ({ onAdd }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -113,7 +115,7 @@ const Header = () => {
 
   const handleAvatarClick = (event) => {
     setAnchorEl(event.currentTarget);
-};
+  };
 
   const handleClose = () => {
     setAnchorEl(null);
@@ -127,8 +129,7 @@ const Header = () => {
 
   const handleAdd = () => {
     handleClose();
-    // Add lógica
-    console.log('Add content clicked');
+    onAdd(); // Call the passed onAdd function
   };
 
   return (

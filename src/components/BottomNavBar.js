@@ -24,7 +24,7 @@ const StyledBottomNavigationAction = styled(BottomNavigationAction)({
   }
 });
 
-const BottomNavBar = () => {
+const BottomNavBar = ({ onAdd }) => {
   const [value, setValue] = React.useState(0);
 
   const handleNavChange = (event, newValue) => {
@@ -37,7 +37,7 @@ const BottomNavBar = () => {
         console.log('Download clicked');
         break;
       case 'add':
-        console.log('Add clicked');
+        onAdd();
         break;
       case 'more':
         console.log('More clicked');
@@ -58,17 +58,14 @@ const BottomNavBar = () => {
         }}
       >
         <StyledBottomNavigationAction
-          label="Download"
           icon={<Download />}
           onClick={() => handleAction('download')}
         />
         <StyledBottomNavigationAction
-          label="Add"
           icon={<Add />}
           onClick={() => handleAction('add')}
         />
         <StyledBottomNavigationAction
-          label="More"
           icon={<MoreVert />}
           onClick={() => handleAction('more')}
         />

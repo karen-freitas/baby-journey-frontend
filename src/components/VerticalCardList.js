@@ -9,15 +9,16 @@ const StyledCard = styled(Card)(({ theme }) => ({
   transition: "all 0.3s ease",
   height: theme.breakpoints.down('sm') ? '120px' : '160px',
   cursor: 'pointer',
+  backgroundColor: '#F4F4F4', // Cinza bem claro
   "&:hover": {
     transform: "translateY(-4px)",
-    boxShadow: theme.shadows[4]
+    boxShadow: theme.shadows[4],
   },
   [theme.breakpoints.down('sm')]: {
     width: '100%',
     margin: '8px 0',
     borderRadius: 0,
-  }
+  },
 }));
 
 const ContentWrapper = styled(Box)({
