@@ -3,17 +3,17 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#B095CC', // Cor semelhante ao D4B7FF, mas mais escura
+      main: '#B095CC',
     },
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          backgroundColor: '#B095CC', // Cor padrão dos botões
+          backgroundColor: '#B095CC',
           color: '#FFFFFF',
           '&:hover': {
-            backgroundColor: '#9A84B8', // Cor ao passar o mouse (ainda mais escura)
+            backgroundColor: '#9A84B8',
           },
         },
       },

@@ -1,13 +1,22 @@
 import './css/App.css';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
+import { useEffect } from 'react';
 import Home from './pages/Home';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import ScrollToTop from './components/ScrollToTop';
 import theme from './theme';
+import { setAuthToken } from './services/apiService';
 
 function App() {
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setAuthToken(token);
+    }
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <Router>

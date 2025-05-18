@@ -74,12 +74,6 @@ const ContentCard = ({
     setIsModalOpen(false);
   };
 
-  const formattedDate = new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-
   return (
     <>
       <StyledCard onClick={handleCardClick}>
@@ -108,7 +102,7 @@ const ContentCard = ({
             {description}
           </Typography>
           <Typography variant="caption" color="text.secondary" display="block" mt={1}>
-            {formattedDate}
+            {date}
           </Typography>
         </CardContent>
       </StyledCard>
@@ -151,7 +145,7 @@ const ContentCard = ({
               </Typography>
 
               <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                {formattedDate}
+                {date}
               </Typography>
 
               <Box sx={{ 

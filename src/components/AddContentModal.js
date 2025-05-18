@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -13,12 +13,17 @@ import {
   Box,
   IconButton,
   styled,
-  Typography,
+  FormHelperText,
   RadioGroup,
   FormControlLabel,
   Radio,
 } from '@mui/material';
 import { PhotoCamera, Close } from '@mui/icons-material';
+import { postMilestone, postMemory } from '../services/apiService';
+import { DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH } from '../constants/appConstants';
+import { AchievementTitles, SpecialRecordTitles } from '../constants/RecordTitles';
+import { useUserData } from '../context/UserDataContext';
+import SnackbarMessage from './SnackbarMessage';
 
 const ImagePreview = styled('img')({
   width: '100%',
@@ -41,185 +46,294 @@ const VisuallyHiddenInput = styled('input')({
   width: 1,
 });
 
-const achievementTitles = [
-  'Andou com apoio',
-  'Aprendeu a rolar',
-  'Começou a balbuciar',
-  'Engatinhou',
-  'Ficou em pé com apoio',
-  'Ficou em pé sem apoio',
-  'Levantou a cabeça de bruços',
-  'Primeira gargalhada',
-  'Primeiras palavrinha',
-  'Primeiro sorriso',
-  'Segurou objetos',
-  'Sentou com apoio',
-  'Sentou sem apoio',
-  'Tentou alcançar objetos',
-];
+const achievementTitlesList = Object.values(AchievementTitles);
+const specialRecordTitlesList = Object.values(SpecialRecordTitles);
 
-const specialRecordTitles = [
-  'Aniversário',
-  'Conhecendo a família',
-  'Meus pézinhos',
-  'Minhas mãozinhas',
-  'Mesversário',
-  'Na materinadade',
-  'Primeira papinha',
-  'Primeira viagem',
-  'Primeira vez na praia',
-  'Primeiro/a amiguinho/a',
-  'Primeiro banho',
-  'Primeiro brinquedo',
-  'Primeiro corte de cabelo',
-  'Primeiro dentinho',
-  'Primeiro dia na escolinha',
-  'Primeiro Natal',
-  'Primeiro passeio',
-];
-
-const AddContentModal = ({ open, onClose }) => {
-  const [formData, setFormData] = useState({
-    type: '',
+const AddContentModal = ({ open, onClose, onSaveSuccess, defaultType }) => {
+  const getInitialFormData = () => ({
+    type: defaultType || "",
     titleType: 'predefined',
     title: '',
     customTitle: '',
+    description: '',
     image: null,
     date: '',
   });
+
+  const [formData, setFormData] = useState(getInitialFormData());
   const [imagePreview, setImagePreview] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.type) newErrors.type = 'Tipo é obrigatório.';
+    if (formData.titleType === 'custom' && !formData.customTitle.trim()) {
+      newErrors.customTitle = 'Título personalizado é obrigatório.';
+    } else if (formData.titleType === 'custom' && formData.customTitle.length > TITLE_MAX_LENGTH) {
+      newErrors.customTitle = `Título não pode exceder ${TITLE_MAX_LENGTH} caracteres.`;
+    }
+    if (formData.titleType === 'predefined' && !formData.title) {
+      newErrors.title = 'Selecionar um título é obrigatório.';
+    }
+    if (!formData.date) newErrors.date = 'Data é obrigatória.';
+    if (formData.description.length > DESCRIPTION_MAX_LENGTH) {
+      newErrors.description = `Descrição não pode exceder ${DESCRIPTION_MAX_LENGTH} caracteres.`;
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
+    const MAX_FILE_SIZE = 3000000;
+
     if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        setErrors((prev) => ({
+          ...prev,
+          image: 'O tamanho da imagem não pode exceder 3 MB.',
+        }));
+        return;
+      }
+
       setFormData({ ...formData, image: file });
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
       };
       reader.readAsDataURL(file);
+
+      if (errors.image) setErrors((prev) => ({ ...prev, image: null }));
     }
   };
 
-  const handleSubmit = () => {
+  const { addItem } = useUserData();
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
     const finalTitle = formData.titleType === 'custom' ? formData.customTitle : formData.title;
-    const submitData = {
-      ...formData,
-      title: finalTitle,
+
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      setSnackbar({ open: true, message: 'Erro: Usuário não identificado. Faça login novamente.', severity: 'error' });
+      setIsSubmitting(false);
+      return;
+    }
+
+    const formatDateForAPI = (dateStr) => {
+      if (!dateStr) return '';
+      const [year, month, day] = dateStr.split('-');
+      return `${day}/${month}/${year}`;
     };
-    console.log('Submitting:', submitData);
-    onClose();
+
+    const payload = new FormData();
+    payload.append('userId', userId);
+    payload.append('title', finalTitle);
+    payload.append('description', formData.description || '');
+    payload.append('date', formatDateForAPI(formData.date));
+    if (formData.image) {
+      payload.append('file', formData.image);
+    }
+
+    const imageUrl = URL.createObjectURL(formData.image);
+    const newItem = { title: finalTitle, description: formData.description, date: formData.date, file: imageUrl };
+
+    try {
+      let result;
+      let type;
+      if (formData.type === 'achievements') {
+        result = await postMilestone(payload);
+        type = "milestone";
+      } else if (formData.type === 'special-records') {
+        result = await postMemory(payload);
+        type = "memory";
+      }
+
+      if (result && result._id) {
+        await addItem(newItem, type);
+        setSnackbar({ open: true, message: 'Registro salvo com sucesso!', severity: 'success' });
+      }
+      setTimeout(() => handleCloseModal(), 600);
+    } catch (error) {
+      const apiErrorMessage = error.response?.data?.message || error.message || 'Tente novamente.';
+      setSnackbar({ open: true, message: `Erro ao salvar registro: ${apiErrorMessage}`, severity: 'error' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReset = () => {
-    setFormData({
-      type: '',
-      titleType: 'predefined',
-      title: '',
-      customTitle: '',
-      image: null,
-      date: '',
-    });
+    setFormData(getInitialFormData());
     setImagePreview(null);
+    setErrors({});
+    setIsSubmitting(false);
   };
 
+  const handleCloseModal = () => {
+    handleReset();
+    onClose();
+  };
+
+  useEffect(() => {
+    if (open) {
+      setFormData(getInitialFormData());
+      setImagePreview(null);
+      setErrors({});
+      setIsSubmitting(false);
+    }
+  }, [open, defaultType]);
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        Adicionar novo registro
-        <IconButton onClick={onClose}>
-          <Close />
-        </IconButton>
-      </DialogTitle>
+    <>
+      <Dialog open={open} onClose={handleCloseModal} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          Adicionar novo registro
+          <IconButton onClick={handleCloseModal} disabled={isSubmitting}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
 
-      <DialogContent dividers>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {/* Image Upload */}
-          <Box sx={{ textAlign: 'center' }}>
-            {imagePreview && <ImagePreview src={imagePreview} alt="Preview" />}
-            <Button
-              component="label"
-              variant="outlined"
-              startIcon={<PhotoCamera />}
-              sx={{ mt: 1 }}
-            >
-              {imagePreview ? 'Trocar imagem' : 'Adicionar imagem'}
-              <VisuallyHiddenInput type="file" accept="image/*" onChange={handleImageChange} />
-            </Button>
-          </Box>
+        <DialogContent dividers>
+          <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
+            <Box sx={{ textAlign: 'center' }}>
+              {imagePreview && <ImagePreview src={imagePreview} alt="Preview" />}
+              <Button
+                component="label"
+                variant="outlined"
+                startIcon={<PhotoCamera />}
+                sx={{ mt: imagePreview ? 1 : 0 }}
+                disabled={isSubmitting}
+              >
+                {imagePreview ? 'Trocar imagem' : 'Adicionar imagem'}
+                <VisuallyHiddenInput type="file" accept="image/*" onChange={handleImageChange} />
+              </Button>
+              {errors.image && <FormHelperText error sx={{ textAlign: 'center' }}>{errors.image}</FormHelperText>}
+            </Box>
 
-          {/* Type Selection */}
-          <FormControl fullWidth>
-            <InputLabel>Tipo</InputLabel>
-            <Select
-              value={formData.type}
-              label="Tipo"
-              onChange={(e) => setFormData({ ...formData, type: e.target.value, title: '' })}
-            >
-              <MenuItem value="achievements">Conquistas</MenuItem>
-              <MenuItem value="special-records">Registros Especiais</MenuItem>
-            </Select>
-          </FormControl>
+            <FormControl fullWidth error={!!errors.type}>
+              <InputLabel id="type-select-label">Tipo</InputLabel>
+              <Select
+                labelId="type-select-label"
+                name="type"
+                value={formData.type}
+                label="Tipo"
+                onChange={(e) => {
+                  handleInputChange(e);
+                  setFormData(prev => ({ ...prev, title: '', customTitle: '' }));
+                }}
+                disabled={isSubmitting}
+              >
+                <MenuItem value="achievements">Conquistas</MenuItem>
+                <MenuItem value="special-records">Registros Especiais</MenuItem>
+              </Select>
+              {errors.type && <FormHelperText>{errors.type}</FormHelperText>}
+            </FormControl>
 
-          {/* Title Selection */}
-          {formData.type && (
-            <>
-              <FormControl>
-                <RadioGroup
-                  value={formData.titleType}
-                  onChange={(e) => setFormData({ ...formData, titleType: e.target.value })}
-                  row
-                >
-                  <FormControlLabel value="predefined" control={<Radio />} label="Selecionar título" />
-                  <FormControlLabel value="custom" control={<Radio />} label="Título personalizado" />
-                </RadioGroup>
-              </FormControl>
-
-              {formData.titleType === 'predefined' ? (
-                <FormControl fullWidth>
-                  <InputLabel>Título</InputLabel>
-                  <Select
-                    value={formData.title}
-                    label="Título"
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            {formData.type && (
+              <>
+                <FormControl component="fieldset" error={!!errors.titleType}>
+                  <RadioGroup
+                    name="titleType"
+                    value={formData.titleType}
+                    onChange={handleInputChange}
+                    row
                   >
-                    {(formData.type === 'achievements' ? achievementTitles : specialRecordTitles).map((title) => (
-                      <MenuItem key={title} value={title}>
-                        {title}
-                      </MenuItem>
-                    ))}
-                  </Select>
+                    <FormControlLabel value="predefined" control={<Radio disabled={isSubmitting} />} label="Selecionar título" />
+                    <FormControlLabel value="custom" control={<Radio disabled={isSubmitting} />} label="Título personalizado" />
+                  </RadioGroup>
+                  {errors.titleType && <FormHelperText>{errors.titleType}</FormHelperText>}
                 </FormControl>
-              ) : (
-                <TextField
-                  fullWidth
-                  label="Título personalizado"
-                  value={formData.customTitle}
-                  onChange={(e) => setFormData({ ...formData, customTitle: e.target.value })}
-                />
-              )}
-            </>
-          )}
 
-          {/* Date Selection */}
-          <TextField
-            type="date"
-            label="Data"
-            value={formData.date}
-            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-          />
-        </Box>
-      </DialogContent>
+                {formData.titleType === 'predefined' ? (
+                  <FormControl fullWidth error={!!errors.title}>
+                    <InputLabel id="predefined-title-label">Título</InputLabel>
+                    <Select
+                      labelId="predefined-title-label"
+                      name="title"
+                      value={formData.title}
+                      label="Título"
+                      onChange={handleInputChange}
+                      disabled={isSubmitting}
+                    >
+                      {(formData.type === 'achievements' ? achievementTitlesList : specialRecordTitlesList).map((titleOption) => (
+                        <MenuItem key={titleOption} value={titleOption}>
+                          {titleOption}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {errors.title && <FormHelperText>{errors.title}</FormHelperText>}
+                  </FormControl>
+                ) : (
+                  <TextField
+                    fullWidth
+                    name="customTitle"
+                    label="Título personalizado"
+                    value={formData.customTitle}
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    inputProps={{ maxLength: TITLE_MAX_LENGTH }}
+                    error={!!errors.customTitle}
+                    helperText={errors.customTitle || `${formData.customTitle.length}/${TITLE_MAX_LENGTH}`}
+                  />
+                )}
+              </>
+            )}
 
-      <DialogActions>
-        <Button onClick={() => { onClose(); handleReset(); }}>Cancelar</Button>
-        <Button onClick={handleSubmit} variant="contained" color="primary">
-          Salvar
-        </Button>
-      </DialogActions>
-    </Dialog>
+            <TextField
+              fullWidth
+              name="description"
+              label="Descrição (opcional)"
+              multiline
+              rows={3}
+              value={formData.description}
+              onChange={handleInputChange}
+              disabled={isSubmitting}
+              inputProps={{ maxLength: DESCRIPTION_MAX_LENGTH }}
+              error={!!errors.description}
+              helperText={errors.description || `${formData.description.length}/${DESCRIPTION_MAX_LENGTH}`}
+            />
+
+            <TextField
+              name="date"
+              type="date"
+              label="Data"
+              value={formData.date}
+              onChange={handleInputChange}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              disabled={isSubmitting}
+              error={!!errors.date}
+              helperText={errors.date}
+            />
+          </Box>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={handleCloseModal} disabled={isSubmitting}>Cancelar</Button>
+          <Button onClick={handleSubmit} variant="contained" color="primary" disabled={isSubmitting}>
+            {isSubmitting ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <SnackbarMessage
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
+    </>
   );
 };
 

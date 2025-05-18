@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   TextField,
@@ -6,9 +6,13 @@ import {
   Typography,
   Container,
   styled,
+  Link as MuiLink
 } from '@mui/material';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import Header from '../components/Header';
+import { login } from '../services/apiService';
+import { useUserData } from '../context/UserDataContext';
+import SnackbarMessage from '../components/SnackbarMessage';
 
 const LoginContainer = styled(Container)(({ theme }) => ({
   display: 'flex',
@@ -36,10 +40,23 @@ const RegisterLink = styled(Box)({
 
 const Login = () => {
   const navigate = useNavigate();
+  const { fetchUserAndImages } = useUserData();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/home", { replace: true });
+    }
+  }, [navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -49,11 +66,27 @@ const Login = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login Data:', formData);
-    // Adicionar lógica
-    navigate('/home');
+    try {
+      const response = await login(formData);
+      if (response.token && response.id) {
+        await fetchUserAndImages(true);
+      navigate('/home');
+      } else {
+        setSnackbar({
+          open: true,
+          message: 'Resposta de login inválida.',
+          severity: 'error',
+        });
+    }
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: 'Falha no login. Verifique seu e-mail e senha.',
+        severity: 'error',
+      });
+    }
   };
 
   return (
@@ -102,10 +135,10 @@ const Login = () => {
             sx={{
               mt: 2,
               mb: 2,
-              backgroundColor: '#ACFFDE',
-              color: '#2C2C2C',
+              backgroundColor: 'rgb(83, 40, 87)',
+              color: 'white',
               '&:hover': {
-                backgroundColor: '#9EEFD0',
+                backgroundColor: 'rgb(164, 130, 185)',
               },
             }}
           >
@@ -115,20 +148,19 @@ const Login = () => {
           <RegisterLink>
             <Typography variant="body2" color="text.secondary">
               Não tem uma conta?{' '}
-              <Link
-                to="/register"
-                style={{
-                  color: '#2C2C2C',
-                  textDecoration: 'none',
-                  fontWeight: 500,
-                }}
-              >
+              <MuiLink component={RouterLink} to="/register" sx={{ color: '#2C2C2C', textDecoration: 'none', fontWeight: 500 }}>
                 Cadastre-se
-              </Link>
+              </MuiLink>
             </Typography>
           </RegisterLink>
         </Form>
       </LoginContainer>
+      <SnackbarMessage
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
     </>
   );
 };

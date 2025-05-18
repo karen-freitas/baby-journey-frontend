@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   TextField,
@@ -6,17 +6,15 @@ import {
   Typography,
   Container,
   styled,
-  Avatar,
-  IconButton,
-  Link,
 } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { PhotoCamera } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import { Link as RouterLink } from "react-router-dom";
+import { createUser } from '../services/apiService';
+import SnackbarMessage from '../components/SnackbarMessage';
 
 const RegisterContainer = styled(Container)(({ theme }) => ({
   display: "flex",
@@ -37,19 +35,6 @@ const InputField = styled(TextField)({
   marginBottom: "1rem",
 });
 
-const PhotoUpload = styled(Box)(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  marginBottom: theme.spacing(3),
-}));
-
-const LargeAvatar = styled(Avatar)(({ theme }) => ({
-  width: theme.spacing(8), // Tamanho do avatar
-  height: theme.spacing(8),
-  marginBottom: theme.spacing(0.5), // Reduzido para 0.5rem
-}));
-
 const LoginLink = styled(Box)({
   textAlign: 'center',
   marginTop: '1rem',
@@ -64,7 +49,14 @@ const Register = () => {
     birthDate: null,
     profilePhoto: null,
   });
-  const [photoPreview, setPhotoPreview] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/home", { replace: true });
+    }
+  }, [navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -81,26 +73,24 @@ const Register = () => {
     }));
   };
 
-  const handlePhotoChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        profilePhoto: file,
-      }));
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form Data:", formData);
-    // Adicionar lógica
-    navigate("/home"); // Navegar para a página inicial após o cadastro
+    if (formData.password.length < 6) {
+      setSnackbar({ open: true, message: "A senha deve ter no mínimo 6 caracteres.", severity: "warning" });
+      return;
+    }
+    try {
+      await createUser({
+        name: formData.babyName,
+        email: formData.email,
+        password: formData.password,
+      });
+      setSnackbar({ open: true, message: "Cadastro realizado com sucesso! Faça o login.", severity: "success" });
+      setTimeout(() => navigate("/login"), 2000);
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Erro ao cadastrar usuário. Verifique os dados ou tente mais tarde.";
+      setSnackbar({ open: true, message: errorMessage, severity: "error" });
+    }
   };
 
   return (
@@ -120,29 +110,6 @@ const Register = () => {
         </Typography>
 
         <Form onSubmit={handleSubmit}>
-          <PhotoUpload>
-            <LargeAvatar src={photoPreview} />
-            <input
-              accept="image/*"
-              style={{ display: "none" }}
-              id="photo-upload"
-              type="file"
-              onChange={handlePhotoChange}
-            />
-            <label htmlFor="photo-upload">
-              <IconButton
-                color="primary"
-                aria-label="upload baby photo"
-                component="span"
-              >
-                <PhotoCamera />
-              </IconButton>
-            </label>
-            <Typography variant="caption" color="textSecondary">
-              Adicionar foto do bebê
-            </Typography>
-          </PhotoUpload>
-
           <InputField
             required
             fullWidth
@@ -191,10 +158,10 @@ const Register = () => {
             sx={{
               mt: 2,
               mb: 2,
-              backgroundColor: "#ACFFDE",
-              color: "#2C2C2C",
-              "&:hover": {
-                backgroundColor: "#9EEFD0",
+              backgroundColor: 'rgb(83, 40, 87)',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: 'rgb(164, 130, 185)',
               },
             }}
           >
@@ -218,6 +185,12 @@ const Register = () => {
           </LoginLink>
         </Form>
       </RegisterContainer>
+      <SnackbarMessage
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
     </>
   );
 };
