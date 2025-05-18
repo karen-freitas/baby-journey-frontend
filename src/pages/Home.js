@@ -17,11 +17,11 @@ const Home = () => {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [addType, setAddType] = useState("");
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login', { replace: true });
-    }
+  // useEffect(() => {
+  //   const token = localStorage.getItem('token');
+  //   if (!token) {
+  //     navigate('/login', { replace: true });
+  //   }
     // const loginTimestamp = localStorage.getItem('loginTimestamp');
   // if (loginTimestamp) {
   //   const loginDate = new Date(loginTimestamp);
@@ -33,7 +33,7 @@ const Home = () => {
   //     navigate('/login', { replace: true });
   //   }
   // }
-  }, [navigate]);
+  // }, [navigate]);
 
   const handleEditLocal = (updated, type) => {
     if (type === 'memory') {
