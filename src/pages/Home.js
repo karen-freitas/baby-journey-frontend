@@ -22,17 +22,17 @@ const Home = () => {
     if (!token) {
       navigate('/login', { replace: true });
     }
-    const loginTimestamp = localStorage.getItem('loginTimestamp');
-  if (loginTimestamp) {
-    const loginDate = new Date(loginTimestamp);
-    const now = new Date();
-    const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
+    // const loginTimestamp = localStorage.getItem('loginTimestamp');
+  // if (loginTimestamp) {
+  //   const loginDate = new Date(loginTimestamp);
+  //   const now = new Date();
+  //   const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
 
-    if (now - loginDate > oneDayInMilliseconds) {
-      localStorage.clear();
-      navigate('/login', { replace: true });
-    }
-  }
+  //   if (now - loginDate > oneDayInMilliseconds) {
+  //     localStorage.clear();
+  //     navigate('/login', { replace: true });
+  //   }
+  // }
   }, [navigate]);
 
   const handleEditLocal = (updated, type) => {
