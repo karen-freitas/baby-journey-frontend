@@ -5,7 +5,8 @@ import VerticalCardList from '../components/VerticalCardList';
 import SnackbarMessage from '../components/SnackbarMessage';
 import AddContentModal from '../components/AddContentModal';
 import BottomNavBar from '../components/BottomNavBar';
-import { Box, CircularProgress, Container } from '@mui/material';
+import { Box, CircularProgress, Container, Button, Typography, Fab, useMediaQuery, useTheme } from '@mui/material';
+import { Add, KeyboardArrowUp } from '@mui/icons-material';
 import { useUserData } from '../context/UserDataContext';
 import { useNavigate } from "react-router-dom";
 import SectionTitle from '../components/SectionTitle';
@@ -17,23 +18,23 @@ const Home = () => {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [addType, setAddType] = useState("");
 
-  // useEffect(() => {
-  //   const token = localStorage.getItem('token');
-  //   if (!token) {
-  //     navigate('/login', { replace: true });
-  //   }
-    // const loginTimestamp = localStorage.getItem('loginTimestamp');
-  // if (loginTimestamp) {
-  //   const loginDate = new Date(loginTimestamp);
-  //   const now = new Date();
-  //   const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login', { replace: true });
+    }
+    const loginTimestamp = localStorage.getItem('loginTimestamp');
+  if (loginTimestamp) {
+    const loginDate = new Date(loginTimestamp);
+    const now = new Date();
+    const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
 
-  //   if (now - loginDate > oneDayInMilliseconds) {
-  //     localStorage.clear();
-  //     navigate('/login', { replace: true });
-  //   }
-  // }
-  // }, [navigate]);
+    if (now - loginDate > oneDayInMilliseconds) {
+      localStorage.clear();
+      navigate('/login', { replace: true });
+    }
+  }
+  }, [navigate]);
 
   const handleEditLocal = (updated, type) => {
     if (type === 'memory') {
