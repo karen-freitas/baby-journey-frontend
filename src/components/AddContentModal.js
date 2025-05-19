@@ -24,6 +24,7 @@ import { DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH } from '../constants/appConsta
 import { AchievementTitles, SpecialRecordTitles } from '../constants/RecordTitles';
 import { useUserData } from '../context/UserDataContext';
 import SnackbarMessage from './SnackbarMessage';
+import imageCompression from 'browser-image-compression';
 
 const ImagePreview = styled('img')({
   width: '100%',
@@ -93,20 +94,27 @@ const AddContentModal = ({ open, onClose, onSaveSuccess, defaultType }) => {
     }
   };
 
-  const handleImageChange = (event) => {
+  const handleImageChange = async (event) => {
     const file = event.target.files[0];
-    const MAX_FILE_SIZE = 3000000;
+    // const MAX_FILE_SIZE = 10000000;
 
     if (file) {
-      if (file.size > MAX_FILE_SIZE) {
-        setErrors((prev) => ({
-          ...prev,
-          image: 'O tamanho da imagem não pode exceder 3 MB.',
-        }));
-        return;
-      }
+      // if (file.size > MAX_FILE_SIZE) {
+      //   setErrors((prev) => ({
+      //     ...prev,
+      //     image: 'O tamanho da imagem não pode exceder 3 MB.',
+      //   }));
+      //   return;
+      // }
+      const options = {
+        maxSizeMB: 1, 
+        maxWidthOrHeight: 1024,
+        useWebWorker: true, 
+      };
 
-      setFormData({ ...formData, image: file });
+      const compressedFile = await imageCompression(file, options);
+
+      setFormData({ ...formData, image: compressedFile });
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);

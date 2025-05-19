@@ -77,11 +77,11 @@ export const createUser = async (userData) => {
 export const getUser = async (userId) => {
   try {
     const token = localStorage.getItem("token");
-    const headers = {};
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-    const response = await axiosInstance.get(`/users/${userId}`, { headers });
+    const response = await axiosInstance.get(`/users/${userId}`, {
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
     return response.data;
   } catch (error) {
     console.error(
