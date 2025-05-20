@@ -96,16 +96,8 @@ const AddContentModal = ({ open, onClose, onSaveSuccess, defaultType }) => {
 
   const handleImageChange = async (event) => {
     const file = event.target.files[0];
-    // const MAX_FILE_SIZE = 10000000;
 
     if (file) {
-      // if (file.size > MAX_FILE_SIZE) {
-      //   setErrors((prev) => ({
-      //     ...prev,
-      //     image: 'O tamanho da imagem não pode exceder 3 MB.',
-      //   }));
-      //   return;
-      // }
       const options = {
         maxSizeMB: 1, 
         maxWidthOrHeight: 1024,
@@ -125,7 +117,7 @@ const AddContentModal = ({ open, onClose, onSaveSuccess, defaultType }) => {
     }
   };
 
-  const { addItem } = useUserData();
+  const { addItem, memories, milestones } = useUserData();
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
@@ -156,22 +148,32 @@ const AddContentModal = ({ open, onClose, onSaveSuccess, defaultType }) => {
     }
 
     const imageUrl = URL.createObjectURL(formData.image);
-    const newItem = { title: finalTitle, description: formData.description, date: formData.date, file: imageUrl };
 
     try {
       let result;
       let type;
       if (formData.type === 'achievements') {
         result = await postMilestone(payload);
-        type = "milestone";
+        type = "milestones";
       } else if (formData.type === 'special-records') {
         result = await postMemory(payload);
-        type = "memory";
+        type = "memories";
       }
 
-      if (result && result._id) {
-        await addItem(newItem, type);
-        setSnackbar({ open: true, message: 'Registro salvo com sucesso!', severity: 'success' });
+      if (result && result[type]) {
+        const newItems = result[type];
+        const existingItems = type === 'memories' ? memories : milestones;
+
+
+        const newItem = newItems.find(
+          (item) => !existingItems.some((existing) => existing._id === item._id)
+        );
+
+        if (newItem) {
+          newItem.file = imageUrl;
+          await addItem(newItem, type);
+          setSnackbar({ open: true, message: 'Registro salvo com sucesso!', severity: 'success' });
+        }
       }
       setTimeout(() => handleCloseModal(), 600);
     } catch (error) {

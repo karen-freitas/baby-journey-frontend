@@ -46,7 +46,7 @@ export const UserDataProvider = ({ children }) => {
 
   // ADD
   const addItem = async (item, type) => {
-    if (type === "memory") setMemories((prev) => [...prev, { ...item}]);
+    if (type === "memories") setMemories((prev) => [...prev, { ...item}]);
     else setMilestones((prev) => [...prev, { ...item}]);
   };
 

@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
-import { Box, IconButton, styled, Typography, Skeleton, Button, useTheme, useMediaQuery } from "@mui/material";
+import React, { useState, useCallback, useRef } from "react";
+import { Box, IconButton, styled, Typography, Skeleton, Button } from "@mui/material";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import CardDetailsModal from './CardDetailsModal';
 import unavailableImage from '../assets/unavailable.png';
@@ -15,6 +15,7 @@ const CarouselContainer = styled(Box)(({ theme }) => ({
 
 const ImageContainer = styled(Box)(({ theme }) => ({
   display: "flex",
+  transition: "transform 0.5s ease",
   gap: "20px",
   cursor: "grab",
   "&:active": { cursor: "grabbing" }
@@ -29,7 +30,6 @@ const ImageWrapper = styled(Box)(({ theme }) => ({
   boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
   transition: "transform 0.3s ease",
   position: "relative",
-  cursor: "pointer",
   "&:hover": {
     transform: "scale(1.05)",
     boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)"
@@ -52,45 +52,24 @@ const NavigationButton = styled(IconButton)(({ theme }) => ({
   "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.9)" },
   zIndex: 1,
   '&.Mui-disabled': { display: 'none' },
-  [theme.breakpoints.down('md')]: {
-    display: 'none',
-  },
 }));
 
 const ImageCarousel = ({ items = [], onAddClick, onEditLocal, onDeleteLocal }) => {
-  const theme = useTheme();
-  const isSmallOrMediumScreen = useMediaQuery(theme.breakpoints.down('md'));
-
   const [currentIndex, setCurrentIndex] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-
   const totalItems = items.length;
-  const slideWidthWithGap = 300 + 20;
+  const slideWidth = 300 + 20;
+  const currentTransform = -currentIndex * slideWidth;
 
-  const imageContainerRef = useRef(null);
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
-  const isSwiping = useRef(false);
-  const currentTranslateX = useRef(0);
+  const startX = useRef(0);
+  const currentX = useRef(0);
+  const isDragging = useRef(false);
+
   const handleImageClick = (item) => {
-    if (Math.abs(touchEndX.current - touchStartX.current) < 10) {
     setSelectedItem(item);
     setModalOpen(true);
-    }
   };
-
-  const updatePosition = (animate = true) => {
-    if (imageContainerRef.current) {
-      imageContainerRef.current.style.transition = animate ? "transform 0.5s ease" : "none";
-      currentTranslateX.current = -currentIndex * slideWidthWithGap;
-      imageContainerRef.current.style.transform = `translateX(${currentTranslateX.current}px)`;
-    }
-  };
-
-  useEffect(() => {
-    updatePosition();
-  }, [currentIndex, slideWidthWithGap]);
 
   const handleNext = useCallback(() => {
     setCurrentIndex((prev) => Math.min(prev + 1, totalItems - 1));
@@ -100,48 +79,60 @@ const ImageCarousel = ({ items = [], onAddClick, onEditLocal, onDeleteLocal }) =
     setCurrentIndex((prev) => Math.max(prev - 1, 0));
   }, []);
 
-  const handleTouchStart = (e) => {
-    if (!isSmallOrMediumScreen || totalItems <= 1) return;
-    touchStartX.current = e.targetTouches[0].clientX;
-    isSwiping.current = true;
-    if (imageContainerRef.current) {
-      imageContainerRef.current.style.transition = "none";
-    }
-};
-
-  const handleTouchMove = (e) => {
-    if (!isSwiping.current || !isSmallOrMediumScreen || totalItems <= 1) return;
-    touchEndX.current = e.targetTouches[0].clientX;
-    const diffX = touchEndX.current - touchStartX.current;
-    if (imageContainerRef.current) {
-      imageContainerRef.current.style.transform = `translateX(${currentTranslateX.current + diffX}px)`;
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (!isSwiping.current || !isSmallOrMediumScreen || totalItems <= 1) return;
-    isSwiping.current = false;
-    const diffX = touchEndX.current - touchStartX.current;
-    const swipeThreshold = slideWidthWithGap / 3;
-
-    if (imageContainerRef.current) {
-      imageContainerRef.current.style.transition = "transform 0.5s ease";
-    }
-
-    if (diffX < -swipeThreshold) {
-      handleNext();
-    } else if (diffX > swipeThreshold) {
-      handlePrev();
-    } else {
-      updatePosition();
-    }
-    touchStartX.current = 0;
-    touchEndX.current = 0;
-  };
-
   const handleImageError = (e) => {
     e.target.src = unavailableImage;
     e.target.alt = "Imagem indisponível";
+  };
+
+  // Swipe Handlers
+  const handleTouchStart = (e) => {
+    startX.current = e.touches[0].clientX;
+    isDragging.current = true;
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging.current) return;
+    currentX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging.current) return;
+    const deltaX = currentX.current - startX.current;
+
+    if (deltaX > 50) {
+      handlePrev(); // Swipe para a direita
+    } else if (deltaX < -50) {
+      handleNext(); // Swipe para a esquerda
+    }
+
+    isDragging.current = false;
+    startX.current = 0;
+    currentX.current = 0;
+  };
+
+  const handleMouseDown = (e) => {
+    startX.current = e.clientX;
+    isDragging.current = true;
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging.current) return;
+    currentX.current = e.clientX;
+  };
+
+  const handleMouseUp = () => {
+    if (!isDragging.current) return;
+    const deltaX = currentX.current - startX.current;
+
+    if (deltaX > 50) {
+      handlePrev(); // Swipe para a direita
+    } else if (deltaX < -50) {
+      handleNext(); // Swipe para a esquerda
+    }
+
+    isDragging.current = false;
+    startX.current = 0;
+    currentX.current = 0;
   };
 
   if (items.length === 0) {
@@ -171,23 +162,23 @@ const ImageCarousel = ({ items = [], onAddClick, onEditLocal, onDeleteLocal }) =
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
     >
       <NavigationButton
         onClick={handlePrev}
         aria-label="Imagem anterior"
-        sx={{ left: { xs: -5, sm: -10 } }}
+        sx={{ left: -10 }}
         disabled={currentIndex === 0 || totalItems === 0}
       >
         <FaChevronLeft />
       </NavigationButton>
       <Box sx={{ overflow: 'hidden', width: '100%' }}>
-        <ImageContainer
-          ref={imageContainerRef}
-          sx={{
-            transform: `translateX(${currentTranslateX.current}px)`,
-            transition: 'transform 0.5s ease',
-          }}
-        >
+        <ImageContainer sx={{
+          transform: `translateX(${currentTransform}px)`,
+          transition: 'transform 0.5s ease',
+        }}>
           {items.map((item, index) => (
             <ImageWrapper key={item?._id || index} onClick={() => handleImageClick(item)}>
               {item.file ? (
@@ -216,7 +207,7 @@ const ImageCarousel = ({ items = [], onAddClick, onEditLocal, onDeleteLocal }) =
       <NavigationButton
         onClick={handleNext}
         aria-label="Próxima imagem"
-        sx={{ right: { xs: -5, sm: -10 } }}
+        sx={{ right: -10 }}
         disabled={currentIndex >= totalItems - 1 || totalItems === 0}
       >
         <FaChevronRight />
