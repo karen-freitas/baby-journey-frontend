@@ -1,5 +1,6 @@
 export const AchievementTitles = Object.freeze({
   ANDOU_COM_APOIO: 'Andou com apoio',
+  ANDOU_SEM_APOIO: 'Andou sem apoio',
   APRENDEU_A_ROLAR: 'Aprendeu a rolar',
   COMEÇOU_A_BALBUCIAR: 'Começou a balbuciar',
   ENGATINHOU: 'Engatinhou',

@@ -88,8 +88,12 @@ const Register = () => {
       setSnackbar({ open: true, message: "Cadastro realizado com sucesso! Faça o login.", severity: "success" });
       setTimeout(() => navigate("/login"), 2000);
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Erro ao cadastrar usuário. Verifique os dados ou tente mais tarde.";
-      setSnackbar({ open: true, message: errorMessage, severity: "error" });
+      const errorMessage = error.message || "Erro ao cadastrar usuário. Verifique os dados ou tente mais tarde.";
+      if (error.statusCode === 400 && errorMessage.includes("already registered")) {
+        setSnackbar({ open: true, message: "O e-mail informado já está cadastrado.", severity: "warning" });
+      } else {
+        setSnackbar({ open: true, message: errorMessage, severity: "error" });
+      }
     }
   };
 

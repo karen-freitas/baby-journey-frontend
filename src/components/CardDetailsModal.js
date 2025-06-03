@@ -23,6 +23,7 @@ const CardDetailsModal = ({ open, onClose, item }) => {
   const [editedItem, setEditedItem] = useState(item);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "info" });
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   useEffect(() => {
     setEditedItem(item);
@@ -130,7 +131,12 @@ const CardDetailsModal = ({ open, onClose, item }) => {
             <IconButton size="small" onClick={handleEditToggle} disabled={isSubmitting}>
               <FaEdit />
             </IconButton>
-            <IconButton size="small" color="error" onClick={handleDeleteClick} disabled={isSubmitting || isEditing}>
+            <IconButton
+              size="small"
+              color="error"
+              onClick={() => setConfirmDeleteOpen(true)}
+              disabled={isSubmitting || isEditing}
+            >
               <FaTrash />
             </IconButton>
           </Box>
@@ -192,6 +198,29 @@ const CardDetailsModal = ({ open, onClose, item }) => {
           ) : (
             <Button onClick={onClose}>Fechar</Button>
           )}
+        </DialogActions>
+      </Dialog>
+      <Dialog open={confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)}>
+        <DialogTitle>Tem certeza que deseja excluir este registro?</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Esta ação não pode ser desfeita. O registro será excluído permanentemente.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDeleteOpen(false)} color="primary">
+            Cancelar
+          </Button>
+          <Button
+            onClick={() => {
+              setConfirmDeleteOpen(false);
+              handleDeleteClick();
+            }}
+            color="error"
+            variant="contained"
+          >
+            Excluir
+          </Button>
         </DialogActions>
       </Dialog>
       <SnackbarMessage {...snackbar} onClose={() => setSnackbar({ ...snackbar, open: false })} />

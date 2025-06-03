@@ -82,6 +82,9 @@ const AddContentModal = ({ open, onClose, onSaveSuccess, defaultType }) => {
     if (formData.description.length > DESCRIPTION_MAX_LENGTH) {
       newErrors.description = `Descrição não pode exceder ${DESCRIPTION_MAX_LENGTH} caracteres.`;
     }
+    if (!formData.image) {
+      newErrors.image = 'A imagem é obrigatória.';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
