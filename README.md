@@ -1,70 +1,82 @@
-# Getting Started with Create React App
+# Baby Journey Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Bem-vindo ao repositório do **Baby Journey**, uma aplicação web desenvolvida para registrar e organizar memórias e marcos importantes do crescimento infantil. Este projeto foi criado como parte avaliativa do curso de pós-graduação em Desenvolvimento Full Stack da PUCRS.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 📋 Descrição do Projeto
 
-### `npm start`
+O **Baby Journey** foi idealizado para resolver a dificuldade enfrentada por pais e responsáveis em documentar momentos especiais de seus bebês de forma centralizada e segura. A aplicação permite o registro de memórias com fotos, descrições e datas, além de marcos de desenvolvimento infantil. Com uma interface responsiva e funcionalidades práticas, o projeto busca facilitar o acesso e a preservação dessas informações.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🚀 Funcionalidades
 
-### `npm test`
+- **Cadastro e Login**: Autenticação segura com JWT.
+- **Registro de Memórias**: Adicione fotos, descrições e datas de momentos especiais.
+- **Marcos de Desenvolvimento**: Registre conquistas importantes do bebê.
+- **Edição e Exclusão**: Atualize ou remova registros existentes.
+- **Visualização em Carrossel**: Navegue pelas memórias de forma interativa.
+- **Lista Vertical de Marcos**: Exiba marcos organizados com imagens e descrições.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## 🛠️ Tecnologias Utilizadas
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### **Frontend**
+- **React**: Framework para construção de interfaces.
+- **Material-UI**: Biblioteca de componentes para estilização.
+- **Context API**: Gerenciamento de estado global.
+- **Axios**: Comunicação com a API.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### **Backend**
+- **Node.js** e **NestJS**: Frameworks para construção da API.
+- **MongoDB**: Banco de dados para armazenamento de registros.
+- **JWT**: Autenticação segura.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `npm run eject`
+## 🌐 Publicação
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+A aplicação está publicada e disponível para acesso nos seguintes endereços:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- **Frontend**: [https://baby-journey-frontend.vercel.app](https://baby-journey-frontend.vercel.app)
+- **Backend (Repositório)**: [https://github.com/karen-freitas/baby-journey-api.git](https://github.com/karen-freitas/baby-journey-api.git)
+- **Documentação da API**: [https://baby-journey-api.onrender.com/api-docs](https://baby-journey-api.onrender.com/api-docs)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+---
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 🚧 Como Executar o Projeto
 
-## Learn More
+Para executar o projeto em sua máquina, siga os passos abaixo:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+1. **Clone o repositório**:
+   ```bash
+   git clone https://github.com/karen-freitas/baby-journey-frontend
+   ```
+2. **Instale as dependências do backend**:
+   ```bash
+   cd baby-journey/backend
+   npm install
+   ```
+3. **Configure o banco de dados**:
+   - Crie um banco de dados MongoDB.
+   - Adicione as credenciais no arquivo `.env`.
+4. **Inicie o servidor do backend**:
+   ```bash
+   npm run start
+   ```
+5. **Instale as dependências do frontend**:
+   ```bash
+   cd ../frontend
+   npm install
+   ```
+6. **Inicie o servidor do frontend**:
+   ```bash
+   npm run start
+   ```
+7. **Acesse a aplicação**:
+   - Frontend: [http://localhost:3000](http://localhost:3000)
+   - Backend: [http://localhost:5000](http://localhost:5000)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
