@@ -6,6 +6,7 @@ import {
   Typography,
   Container,
   styled,
+  CircularProgress,
 } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -50,6 +51,7 @@ const Register = () => {
     profilePhoto: null,
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -79,6 +81,7 @@ const Register = () => {
       setSnackbar({ open: true, message: "A senha deve ter no mínimo 6 caracteres.", severity: "warning" });
       return;
     }
+    setIsLoading(true);
     try {
       await createUser({
         name: formData.babyName,
@@ -94,6 +97,8 @@ const Register = () => {
       } else {
         setSnackbar({ open: true, message: errorMessage, severity: "error" });
       }
+    } finally {
+      setIsLoading(false); 
     }
   };
 
@@ -106,88 +111,94 @@ const Register = () => {
           variant="h5"
           sx={{
             mb: 0,
-            color: "#333333", 
-            fontWeight: 400, 
+            color: "#333333",
+            fontWeight: 400,
           }}
         >
           Cadastro
         </Typography>
 
-        <Form onSubmit={handleSubmit}>
-          <InputField
-            required
-            fullWidth
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleInputChange}
-          />
-
-          <InputField
-            required
-            fullWidth
-            label="Senha"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleInputChange}
-          />
-
-          <InputField
-            required
-            fullWidth
-            label="Nome do bebê"
-            name="babyName"
-            value={formData.babyName}
-            onChange={handleInputChange}
-          />
-
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker
-              label="Data de nascimento"
-              value={formData.birthDate}
-              onChange={handleDateChange}
-              renderInput={(params) => (
-                <InputField {...params} fullWidth required />
-              )}
-              sx={{ width: "100%", mb: 2 }}
+        {isLoading ? (
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Form onSubmit={handleSubmit}>
+            <InputField
+              required
+              fullWidth
+              label="Email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
             />
-          </LocalizationProvider>
 
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{
-              mt: 2,
-              mb: 2,
-              backgroundColor: 'rgb(83, 40, 87)',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: 'rgb(164, 130, 185)',
-              },
-            }}
-          >
-            Cadastrar
-          </Button>
+            <InputField
+              required
+              fullWidth
+              label="Senha"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleInputChange}
+            />
 
-          <LoginLink>
-            <Typography variant="body2" color="text.secondary">
-              Já tem uma conta?{' '}
-              <RouterLink
-                to="/login"
-                style={{
-                  color: '#2C2C2C',
-                  textDecoration: 'none',
-                  fontWeight: 500,
-                }}
-              >
-                Faça login
-              </RouterLink>
-            </Typography>
-          </LoginLink>
-        </Form>
+            <InputField
+              required
+              fullWidth
+              label="Nome do bebê"
+              name="babyName"
+              value={formData.babyName}
+              onChange={handleInputChange}
+            />
+
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                label="Data de nascimento"
+                value={formData.birthDate}
+                onChange={handleDateChange}
+                renderInput={(params) => (
+                  <InputField {...params} fullWidth required />
+                )}
+                sx={{ width: "100%", mb: 2 }}
+              />
+            </LocalizationProvider>
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{
+                mt: 2,
+                mb: 2,
+                backgroundColor: 'rgb(83, 40, 87)',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgb(164, 130, 185)',
+                },
+              }}
+            >
+              Cadastrar
+            </Button>
+
+            <LoginLink>
+              <Typography variant="body2" color="text.secondary">
+                Já tem uma conta?{' '}
+                <RouterLink
+                  to="/login"
+                  style={{
+                    color: '#2C2C2C',
+                    textDecoration: 'none',
+                    fontWeight: 500,
+                  }}
+                >
+                  Faça login
+                </RouterLink>
+              </Typography>
+            </LoginLink>
+          </Form>
+        )}
       </RegisterContainer>
       <SnackbarMessage
         open={snackbar.open}

@@ -6,7 +6,8 @@ import {
   Typography,
   Container,
   styled,
-  Link as MuiLink
+  Link as MuiLink,
+  CircularProgress
 } from '@mui/material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import Header from '../components/Header';
@@ -50,6 +51,7 @@ const Login = () => {
     message: '',
     severity: 'info',
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -68,24 +70,27 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
       const response = await login(formData);
       if (response.token && response.id) {
         await fetchUserAndImages(true);
-      navigate('/home');
+        navigate('/home');
       } else {
         setSnackbar({
           open: true,
           message: 'Resposta de login inválida.',
           severity: 'error',
         });
-    }
+      }
     } catch (error) {
       setSnackbar({
         open: true,
         message: 'Falha no login. Verifique seu e-mail e senha.',
         severity: 'error',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -105,55 +110,61 @@ const Login = () => {
           Login
         </Typography>
 
-        <Form onSubmit={handleSubmit}>
-          <InputField
-            required
-            fullWidth
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            autoComplete="email"
-          />
+        {isLoading ? (
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Form onSubmit={handleSubmit}>
+            <InputField
+              required
+              fullWidth
+              label="Email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              autoComplete="email"
+            />
 
-          <InputField
-            required
-            fullWidth
-            label="Senha"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleInputChange}
-            autoComplete="current-password"
-          />
+            <InputField
+              required
+              fullWidth
+              label="Senha"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              autoComplete="current-password"
+            />
 
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{
-              mt: 2,
-              mb: 2,
-              backgroundColor: 'rgb(83, 40, 87)',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: 'rgb(164, 130, 185)',
-              },
-            }}
-          >
-            Entrar
-          </Button>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{
+                mt: 2,
+                mb: 2,
+                backgroundColor: 'rgb(83, 40, 87)',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgb(164, 130, 185)',
+                },
+              }}
+            >
+              Entrar
+            </Button>
 
-          <RegisterLink>
-            <Typography variant="body2" color="text.secondary">
-              Não tem uma conta?{' '}
-              <MuiLink component={RouterLink} to="/register" sx={{ color: '#2C2C2C', textDecoration: 'none', fontWeight: 500 }}>
-                Cadastre-se
-              </MuiLink>
-            </Typography>
-          </RegisterLink>
-        </Form>
+            <RegisterLink>
+              <Typography variant="body2" color="text.secondary">
+                Não tem uma conta?{' '}
+                <MuiLink component={RouterLink} to="/register" sx={{ color: '#2C2C2C', textDecoration: 'none', fontWeight: 500 }}>
+                  Cadastre-se
+                </MuiLink>
+              </Typography>
+            </RegisterLink>
+          </Form>
+        )}
       </LoginContainer>
       <SnackbarMessage
         open={snackbar.open}
